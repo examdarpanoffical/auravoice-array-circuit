@@ -1,0 +1,40 @@
+plugins {
+    id 'com.android.application'
+}
+
+def publishedUrl = providers.gradleProperty('auraVoiceUrl').orNull
+if (!publishedUrl) {
+    throw new GradleException('Supply -PauraVoiceUrl with your published AuraVoice HTTPS URL.')
+}
+def parsedUrl
+try {
+    parsedUrl = new URI(publishedUrl)
+} catch (Exception ignored) {
+    throw new GradleException('auraVoiceUrl must be a valid HTTPS URL.')
+}
+if (parsedUrl.scheme != 'https' || !parsedUrl.host || parsedUrl.userInfo != null) {
+    throw new GradleException('auraVoiceUrl must be an HTTPS URL without embedded credentials.')
+}
+
+android {
+    namespace 'auravoice.preview'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'auravoice.preview'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+        buildConfigField 'String', 'APP_URL', '"' + publishedUrl.replace('\\', '\\\\').replace('"', '\\"') + '"'
+    }
+
+    buildFeatures {
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
